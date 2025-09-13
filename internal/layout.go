@@ -88,6 +88,7 @@ func Navigation(activeRoute string) x.Component {
 	)
 
 	navigation := x.Nav(
+		x.Class("flex items-center gap-6"),
 		x.C(navLinkWithIcon("Home", "/", activeRoute == "/", lucide.Car(append(lucide.Size("16"), lucide.StrokeWidth("1.5"))...))),
 		x.C(navLink("Features", "/features", activeRoute == "/features")),
 		x.C(navLink("Docs", "/docs", activeRoute == "/docs")),
@@ -133,7 +134,7 @@ func Footer() x.Component {
 
 // navLink creates a standard navigation link
 func navLink(text, href string, active bool) x.Component {
-	base := "inline-flex h-9 items-center rounded-md px-3 text-sm font-medium transition-colors"
+	base := "flex h-9 items-center rounded-md px-3 text-sm font-medium transition-colors"
 	idle := "text-zinc-700 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-800"
 	activeClass := "text-violet-700 bg-violet-50 dark:text-violet-300 dark:bg-violet-900/30"
 
@@ -147,7 +148,7 @@ func navLink(text, href string, active bool) x.Component {
 
 // navLinkWithIcon creates a navigation link with an icon
 func navLinkWithIcon(text, href string, active bool, icon x.Component) x.Component {
-	base := "inline-flex h-9 items-center gap-2 rounded-md px-3 text-sm font-medium transition-colors"
+	base := "flex h-9 items-center gap-2 rounded-md px-3 text-sm font-medium transition-colors"
 	idle := "text-zinc-700 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-800"
 	activeClass := "text-violet-700 bg-violet-50 dark:text-violet-300 dark:bg-violet-900/30"
 
