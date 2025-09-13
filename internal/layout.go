@@ -2,7 +2,7 @@ package internal
 
 import (
 	x "github.com/bloxui/blox"
-	"github.com/bloxui/lucide"
+	"github.com/bloxui/icons/lucide"
 )
 
 // PageConfig holds all configuration for building a page
@@ -88,7 +88,7 @@ func Navigation(activeRoute string) x.Component {
 	)
 
 	navigation := x.Nav(
-		x.C(navLinkWithIcon("Home", "/", activeRoute == "/", lucide.House(append(lucide.Size("16"), lucide.StrokeWidth("1.5"))...))),
+		x.C(navLinkWithIcon("Home", "/", activeRoute == "/", lucide.Car(append(lucide.Size("16"), lucide.StrokeWidth("1.5"))...))),
 		x.C(navLink("Features", "/features", activeRoute == "/features")),
 		x.C(navLink("Docs", "/docs", activeRoute == "/docs")),
 		x.C(navLink("Contact", "/contact", activeRoute == "/contact")),
