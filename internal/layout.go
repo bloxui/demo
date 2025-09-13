@@ -89,7 +89,7 @@ func Navigation(activeRoute string) x.Component {
 
 	navigation := x.Nav(
 		x.Class("flex items-center gap-6"),
-		x.C(navLinkWithIcon("Home", "/", activeRoute == "/", lucide.Car(append(lucide.Size("16"), lucide.StrokeWidth("1.5"))...))),
+		x.C(navLinkWithIcon("Home", "/", activeRoute == "/", lucide.House(append(lucide.Size("16"), lucide.StrokeWidth("1.5"))...))),
 		x.C(navLink("Features", "/features", activeRoute == "/features")),
 		x.C(navLink("Docs", "/docs", activeRoute == "/docs")),
 		x.C(navLink("Contact", "/contact", activeRoute == "/contact")),
