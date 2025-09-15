@@ -1,6 +1,6 @@
 package ui
 
-import x "github.com/plainkit/blox"
+import x "github.com/plainkit/html"
 
 const modalCSS = `
 .modal:target {

@@ -1,7 +1,7 @@
 package views
 
 import (
-	. "github.com/plainkit/blox"
+	. "github.com/plainkit/html"
 	icons "github.com/plainkit/icons/lucide"
 )
 

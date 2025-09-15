@@ -1,7 +1,7 @@
 package views
 
 import (
-	. "github.com/plainkit/blox"
+	. "github.com/plainkit/html"
 	icons "github.com/plainkit/icons/lucide"
 	"github.com/plainkit/starter/internal/ui"
 )
@@ -35,7 +35,7 @@ func HomePage() Node {
 					T("View Demo"),
 				),
 				A(
-					Href("https://github.com/plainkit/blox"),
+					Href("https://github.com/plainkit/html"),
 					Target("_blank"),
 					ui.ButtonClass(ui.ButtonSecondary()),
 					Class("flex items-center gap-2"),
@@ -167,7 +167,7 @@ func HomePage() Node {
 				Pre(
 					Class("bg-muted p-4 rounded-lg border text-sm overflow-auto font-mono"),
 					T(`import (
-	. "github.com/plainkit/blox"
+	. "github.com/plainkit/html"
 	icons "github.com/plainkit/icons/lucide"
 	"github.com/plainkit/starter/internal/ui"
 )

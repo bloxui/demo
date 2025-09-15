@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 
-	x "github.com/plainkit/blox"
+	x "github.com/plainkit/html"
 	"github.com/plainkit/starter/internal/views"
 )
 
