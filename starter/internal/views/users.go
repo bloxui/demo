@@ -1,10 +1,10 @@
 package views
 
 import (
-	. "github.com/bloxui/blox"
-	icons "github.com/bloxui/icons/lucide"
-	"github.com/bloxui/starter/internal/domain"
-	"github.com/bloxui/starter/internal/ui"
+	. "github.com/plainkit/blox"
+	icons "github.com/plainkit/icons/lucide"
+	"github.com/plainkit/starter/internal/domain"
+	"github.com/plainkit/starter/internal/ui"
 )
 
 // UsersPage renders the users list and includes the modal markup.

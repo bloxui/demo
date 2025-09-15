@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	starter "github.com/bloxui/starter/internal"
+	starter "github.com/plainkit/starter/internal"
 )
 
 func main() {

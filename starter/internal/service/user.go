@@ -1,6 +1,6 @@
 package service
 
-import "github.com/bloxui/starter/internal/domain"
+import "github.com/plainkit/starter/internal/domain"
 
 // UserService provides application logic for Users.
 type UserService struct {

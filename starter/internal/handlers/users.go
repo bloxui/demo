@@ -3,9 +3,9 @@ package handlers
 import (
 	"net/http"
 
-	x "github.com/bloxui/blox"
-	"github.com/bloxui/starter/internal/service"
-	"github.com/bloxui/starter/internal/views"
+	x "github.com/plainkit/blox"
+	"github.com/plainkit/starter/internal/service"
+	"github.com/plainkit/starter/internal/views"
 )
 
 type Users struct{ Svc *service.UserService }

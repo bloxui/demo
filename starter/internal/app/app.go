@@ -4,11 +4,11 @@ import (
 	"fmt"
 	stdhttp "net/http"
 
-	"github.com/bloxui/starter/internal/css"
-	"github.com/bloxui/starter/internal/handlers"
-	"github.com/bloxui/starter/internal/httpx"
-	"github.com/bloxui/starter/internal/repo"
-	"github.com/bloxui/starter/internal/service"
+	"github.com/plainkit/starter/internal/css"
+	"github.com/plainkit/starter/internal/handlers"
+	"github.com/plainkit/starter/internal/httpx"
+	"github.com/plainkit/starter/internal/repo"
+	"github.com/plainkit/starter/internal/service"
 )
 
 type App struct {

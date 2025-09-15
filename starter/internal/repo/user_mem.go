@@ -1,6 +1,6 @@
 package repo
 
-import "github.com/bloxui/starter/internal/domain"
+import "github.com/plainkit/starter/internal/domain"
 
 // InMemoryUserRepo is a simple in-memory repository for demo purposes.
 type InMemoryUserRepo struct {

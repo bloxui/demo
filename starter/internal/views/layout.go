@@ -1,8 +1,8 @@
 package views
 
 import (
-	. "github.com/bloxui/blox"
-	icons "github.com/bloxui/icons/lucide"
+	. "github.com/plainkit/blox"
+	icons "github.com/plainkit/icons/lucide"
 )
 
 // Layout wraps content with head, tailwind, and collected component assets.

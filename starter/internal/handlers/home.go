@@ -3,8 +3,8 @@ package handlers
 import (
 	"net/http"
 
-	x "github.com/bloxui/blox"
-	"github.com/bloxui/starter/internal/views"
+	x "github.com/plainkit/blox"
+	"github.com/plainkit/starter/internal/views"
 )
 
 type Home struct{}
