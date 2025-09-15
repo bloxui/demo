@@ -1,6 +1,6 @@
-# BloxUI Starter
+# Plain Starter
 
-A production-ready BloxUI application showcasing modern web development with Go. This starter demonstrates type-safe HTML generation, beautiful UI components, and achieves a perfect 100/100/100/100 Lighthouse score.
+A production-ready Plain application showcasing modern web development with Go. This starter demonstrates type-safe HTML generation, beautiful UI components, and achieves a perfect 100/100/100/100 Lighthouse score.
 
 ## ✨ Features
 
@@ -50,7 +50,7 @@ Visit http://localhost:8080
 tailwindcss -i ./internal/css/index.css -o ./internal/css/output.css --minify
 
 # Build binary
-go build -o bloxui-starter ./cmd/server
+go build -o plain-starter ./cmd/server
 ```
 
 ## 📁 Project Structure
@@ -106,4 +106,4 @@ This starter achieves a perfect **100/100/100/100** Lighthouse score across:
 
 ## 📝 License
 
-MIT License - see the BloxUI main repository for details.
+MIT License - see the Plain main repository for details.

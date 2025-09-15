@@ -39,7 +39,7 @@ func baseHTML(title string, content Node, assets *Assets) Component {
 		Head(
 			Meta(Charset("utf-8")),
 			Meta(Name("viewport"), Content("width=device-width, initial-scale=1")),
-			Meta(Name("description"), Content("BloxUI - A modern, type-safe HTML component library for Go with beautiful interfaces and compile-time guarantees.")),
+			Meta(Name("description"), Content("Plain - A modern, type-safe HTML component library for Go with beautiful interfaces and compile-time guarantees.")),
 			HeadTitle(T(title)),
 			Link(LinkRel("preload"), LinkHref("/assets/styles.css"), LinkType("text/css")),
 			Link(LinkRel("stylesheet"), LinkHref("/assets/styles.css")),
@@ -65,7 +65,7 @@ func siteHeader(title string) Node {
 					Class("flex items-center justify-center w-8 h-8 bg-primary rounded-lg"),
 					icons.Zap(icons.Size("18"), Class("text-primary-foreground")),
 				),
-				Span(Class("text-foreground"), T("BloxUI")),
+				Span(Class("text-foreground"), T("Plain")),
 				Span(Class("text-muted-foreground text-sm font-normal"), T("/ "+title)),
 			),
 			Nav(

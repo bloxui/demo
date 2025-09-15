@@ -1,19 +1,19 @@
-# BloxUI Examples
+# Plain Examples
 
-Example applications demonstrating BloxUI usage patterns and best practices.
+Example applications demonstrating Plain usage patterns and best practices.
 
 ## Available Examples
 
 ### [📱 Starter](./starter/)
 
-A production-ready BloxUI application showcasing:
+A production-ready Plain application showcasing:
 - Type-safe HTML generation
 - Modern UI components with shadcn/ui styling
 - Performance optimizations (compression, caching)
 - SEO and accessibility features
 - Clean architecture patterns
 
-Perfect for learning BloxUI or starting a new project.
+Perfect for learning Plain or starting a new project.
 
 ## Getting Started
 

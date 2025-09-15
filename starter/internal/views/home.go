@@ -19,7 +19,7 @@ func HomePage() Node {
 			),
 			H1(
 				Class("text-4xl font-bold text-foreground mb-4"),
-				T("Welcome to BloxUI"),
+				T("Welcome to Plain"),
 			),
 			P(
 				Class("text-xl text-muted-foreground max-w-2xl mx-auto mb-8"),
@@ -93,7 +93,7 @@ func HomePage() Node {
 		// Features Grid
 		Div(
 			Class("text-center mb-8"),
-			H2(Class("text-2xl font-bold mb-6"), T("Why Choose BloxUI")),
+			H2(Class("text-2xl font-bold mb-6"), T("Why Choose Plain")),
 		),
 		Div(
 			Class("grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"),
@@ -179,7 +179,7 @@ func HomePage() Node {
                 Div(
                     Class("flex items-center gap-2"),
                     icons.Zap(icons.Size("20")),
-                    T("BloxUI Demo"),
+                    T("Plain Demo"),
                 ),
             ),
         ),
