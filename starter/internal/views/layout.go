@@ -63,7 +63,7 @@ func siteHeader(title string) Node {
 				Class("font-bold text-lg tracking-tight inline-flex items-center gap-3"),
 				Div(
 					Class("flex items-center justify-center w-8 h-8 bg-primary rounded-lg"),
-					icons.Zap(icons.Size("18"), Class("text-primary-foreground")),
+					icons.Diamond(icons.Size("18"), Class("text-primary-foreground")),
 				),
 				Span(Class("text-foreground"), T("Plain")),
 				Span(Class("text-muted-foreground text-sm font-normal"), T("/ "+title)),

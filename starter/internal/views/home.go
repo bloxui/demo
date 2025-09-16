@@ -15,7 +15,7 @@ func HomePage() Node {
 			Class("text-center py-12"),
 			Div(
 				Class("flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-chart-4 rounded-xl mx-auto mb-6"),
-				icons.Zap(icons.Size("32"), Class("text-primary-foreground")),
+				icons.Diamond(icons.Size("32"), Class("text-primary-foreground")),
 			),
 			H1(
 				Class("text-4xl font-bold text-foreground mb-4"),

@@ -52,58 +52,39 @@ func UsersPage(users []domain.User) Node {
 					Class("grid gap-2"),
 					ui.Label(
 						For("name"),
-						Div(
-							Class("flex items-center gap-2"),
-							icons.User(icons.Size("16")),
-							T("Full Name"),
-						),
+						T("Full Name"),
 					),
 					ui.Input(
 						Id("name"),
 						InputName("name"),
 						Placeholder("Enter full name"),
-						Class("pl-10"),
 						Required(),
-					),
-					Div(
-						Class("absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"),
-						icons.User(icons.Size("16"), Class("text-muted-foreground")),
 					),
 				),
 				Div(
 					Class("grid gap-2 relative"),
 					ui.Label(
 						For("email"),
-						Div(
-							Class("flex items-center gap-2"),
-							icons.Mail(icons.Size("16")),
-							T("Email Address"),
-						),
+						T("Email Address"),
 					),
 					ui.Input(
 						Id("email"),
 						InputName("email"),
 						InputType("email"),
 						Placeholder("name@company.com"),
-						Class("pl-10"),
 						Required(),
-					),
-					Div(
-						Class("absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none top-8"),
-						icons.Mail(icons.Size("16"), Class("text-muted-foreground")),
 					),
 				),
 				ui.ModalFooter(
+					Class("flex items-center gap-4"),
 					A(
 						Href("#"),
 						ui.ButtonClass(ui.ButtonSecondary()),
-						Class("flex items-center gap-2"),
 						T("Cancel"),
 					),
 					Button(
 						ButtonType("submit"),
 						ui.ButtonClass(),
-						Class("flex items-center gap-2"),
 						icons.Plus(icons.Size("16")),
 						T("Create User"),
 					),
