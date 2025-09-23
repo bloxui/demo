@@ -1,3 +1,4 @@
+// Package main demonstrates Google OAuth integration using goth and PlainKit HTML components.
 package main
 
 import (
@@ -12,14 +13,17 @@ import (
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/google"
-	x "github.com/plainkit/html"
+	. "github.com/plainkit/html"
 )
 
+// sessionUser represents a user stored in the session.
 type sessionUser struct {
 	Name      string
 	Email     string
 	AvatarURL string
 }
+
+type userContextKey struct{}
 
 const (
 	sessionName       = "plainkit-goth-session"
@@ -65,31 +69,30 @@ func main() {
 	}
 }
 
+// renderHome handles the home page, redirecting authenticated users to dashboard.
 func renderHome(w http.ResponseWriter, r *http.Request) {
 	user := currentUser(r)
-
-	// Redirect logged-in users to dashboard
 	if user != nil {
 		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
 		return
 	}
 
-	content := []x.Node{
-		x.H1(x.T("PlainKit + Goth")),
-		x.P(x.Class("muted"), x.T("Authenticate with Google to access the private dashboard.")),
-		x.Div(
-			x.Class("actions"),
-			x.A(x.Href("/auth/google"), x.Class("button"),
-				x.Svg(
-					x.Xmlns("http://www.w3.org/2000/svg"),
-					x.ViewBox("0 0 24 24"),
-					x.SvgWidth("20"),
-					x.SvgHeight("20"),
-					x.Fill("currentColor"),
-					x.Role("img"),
-					x.Path(x.D("M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z")),
+	content := []Node{
+		H1(T("PlainKit + Goth")),
+		P(Class("muted"), T("Authenticate with Google to access the private dashboard.")),
+		Div(
+			Class("actions"),
+			A(Href("/auth/google"), Class("button"),
+				Svg(
+					Xmlns("http://www.w3.org/2000/svg"),
+					ViewBox("0 0 24 24"),
+					SvgWidth("20"),
+					SvgHeight("20"),
+					Fill("currentColor"),
+					Role("img"),
+					Path(D("M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z")),
 				),
-				x.T("Continue with Google"),
+				T("Continue with Google"),
 			),
 		),
 	}
@@ -97,10 +100,91 @@ func renderHome(w http.ResponseWriter, r *http.Request) {
 	renderPage(w, "Home", content...)
 }
 
+// renderDashboard displays the user dashboard with profile information.
+func renderDashboard(w http.ResponseWriter, r *http.Request) {
+	user := userFromContext(r)
+	if user == nil {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	content := []Node{
+		H1(T("Welcome back")),
+	}
+
+	if user.AvatarURL != "" {
+		content = append(content,
+			Div(
+				Class("avatar"),
+				Img(Src(user.AvatarURL), Alt("Avatar")),
+			),
+		)
+	}
+
+	content = append(content,
+		Div(
+			Class("surface"),
+			Div(
+				Class("data-row"),
+				Span(Class("data-label"), T("Name")),
+				Strong(T(user.Name)),
+			),
+			Div(
+				Class("data-row"),
+				Span(Class("data-label"), T("Email")),
+				Strong(T(user.Email)),
+			),
+		),
+		Div(
+			Class("actions"),
+			A(Href("/logout"), Class("button"), T("Sign out")),
+		),
+	)
+
+	renderPage(w, "Dashboard", content...)
+}
+
+// renderPage renders a complete HTML page with the given title and body content.
+func renderPage(w http.ResponseWriter, title string, body ...Node) {
+	page := layout(title, body...)
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if _, err := w.Write([]byte("<!DOCTYPE html>\n" + Render(page))); err != nil {
+		log.Printf("render error: %v", err)
+	}
+}
+
+// layout creates the base HTML structure for all pages.
+func layout(title string, body ...Node) Node {
+	cardChildren := make([]DivArg, 0, len(body)+1)
+	cardChildren = append(cardChildren, Class("card shell"))
+	for _, node := range body {
+		cardChildren = append(cardChildren, Child(node))
+	}
+
+	return Html(
+		Lang("en"),
+		Head(
+			HeadTitle(T(title)),
+			Meta(Charset("UTF-8")),
+			Meta(Name("viewport"), Content("width=device-width, initial-scale=1")),
+			HeadStyle(UnsafeText(baseStyles())),
+		),
+		Body(
+			Class("page"),
+			Main(
+				Class("container"),
+				Div(cardChildren...),
+			),
+		),
+	)
+}
+
+// beginGoogleAuth initiates the Google OAuth flow.
 func beginGoogleAuth(w http.ResponseWriter, r *http.Request) {
 	gothic.BeginAuthHandler(w, withProvider(r, providerName))
 }
 
+// completeGoogleAuth handles the OAuth callback and creates a user session.
 func completeGoogleAuth(w http.ResponseWriter, r *http.Request) {
 	user, err := gothic.CompleteUserAuth(w, withProvider(r, providerName))
 	if err != nil {
@@ -127,49 +211,7 @@ func completeGoogleAuth(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
 }
 
-func renderDashboard(w http.ResponseWriter, r *http.Request) {
-	user := userFromContext(r)
-	if user == nil {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
-		return
-	}
-
-	content := []x.Node{
-		x.H1(x.T("Welcome back")),
-	}
-
-	if user.AvatarURL != "" {
-		content = append(content,
-			x.Div(
-				x.Class("avatar"),
-				x.Img(x.Src(user.AvatarURL), x.Alt("Avatar")),
-			),
-		)
-	}
-
-	content = append(content,
-		x.Div(
-			x.Class("surface"),
-			x.Div(
-				x.Class("data-row"),
-				x.Span(x.Class("data-label"), x.T("Name")),
-				x.Strong(x.T(user.Name)),
-			),
-			x.Div(
-				x.Class("data-row"),
-				x.Span(x.Class("data-label"), x.T("Email")),
-				x.Strong(x.T(user.Email)),
-			),
-		),
-		x.Div(
-			x.Class("actions"),
-			x.A(x.Href("/logout"), x.Class("button"), x.T("Sign out")),
-		),
-	)
-
-	renderPage(w, "Dashboard", content...)
-}
-
+// handleLogout clears the user session and redirects to home.
 func handleLogout(w http.ResponseWriter, r *http.Request) {
 	if err := gothic.Logout(w, withProvider(r, providerName)); err != nil {
 		log.Printf("logout error: %v", err)
@@ -184,8 +226,7 @@ func handleLogout(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-type userContextKey struct{}
-
+// requireAuth is middleware that ensures the user is authenticated.
 func requireAuth(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		user := currentUser(r)
@@ -197,6 +238,7 @@ func requireAuth(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
+// currentUser retrieves the authenticated user from the session.
 func currentUser(r *http.Request) *sessionUser {
 	session, err := gothic.Store.Get(r, sessionName)
 	if err != nil {
@@ -219,6 +261,7 @@ func currentUser(r *http.Request) *sessionUser {
 	return nil
 }
 
+// userFromContext retrieves the authenticated user from the request context.
 func userFromContext(r *http.Request) *sessionUser {
 	if value := r.Context().Value(userContextKey{}); value != nil {
 		switch v := value.(type) {
@@ -232,39 +275,7 @@ func userFromContext(r *http.Request) *sessionUser {
 	return nil
 }
 
-func renderPage(w http.ResponseWriter, title string, body ...x.Node) {
-	page := layout(title, body...)
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if _, err := w.Write([]byte("<!DOCTYPE html>\n" + x.Render(page))); err != nil {
-		log.Printf("render error: %v", err)
-	}
-}
-
-func layout(title string, body ...x.Node) x.Node {
-	cardChildren := make([]x.DivArg, 0, len(body)+1)
-	cardChildren = append(cardChildren, x.Class("card shell"))
-	for _, node := range body {
-		cardChildren = append(cardChildren, x.Child(node))
-	}
-
-	return x.Html(
-		x.Lang("en"),
-		x.Head(
-			x.HeadTitle(x.T(title)),
-			x.Meta(x.Charset("UTF-8")),
-			x.Meta(x.Name("viewport"), x.Content("width=device-width, initial-scale=1")),
-			x.HeadStyle(x.UnsafeText(baseStyles())),
-		),
-		x.Body(
-			x.Class("page"),
-			x.Main(
-				x.Class("container"),
-				x.Div(cardChildren...),
-			),
-		),
-	)
-}
-
+// baseStyles returns the CSS styles for the application.
 func baseStyles() string {
 	return `:root {
   color-scheme: light dark;
@@ -423,10 +434,12 @@ p {
 `
 }
 
+// withProvider adds the provider name to the request context for goth.
 func withProvider(r *http.Request, name string) *http.Request {
 	return r.WithContext(context.WithValue(r.Context(), gothic.ProviderParamKey, name))
 }
 
+// mustEnv returns an environment variable or panics if it's not set.
 func mustEnv(key string) string {
 	value := os.Getenv(key)
 	if value == "" {
@@ -435,6 +448,7 @@ func mustEnv(key string) string {
 	return value
 }
 
+// getenvDefault returns an environment variable or a default value if not set.
 func getenvDefault(key, fallback string) string {
 	value := os.Getenv(key)
 	if value == "" {
