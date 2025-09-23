@@ -50,7 +50,7 @@ func Gzip(next http.Handler) http.Handler {
 		w.Header().Set("Vary", "Accept-Encoding")
 
 		gz := gzip.NewWriter(w)
-		defer gz.Close()
+		defer func() { _ = gz.Close() }()
 
 		// Wrap response writer
 		gzw := &gzipResponseWriter{ResponseWriter: w, Writer: gz}

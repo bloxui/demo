@@ -1,0 +1,442 @@
+package main
+
+import (
+	"context"
+	"encoding/gob"
+	"log"
+	"net/http"
+	"os"
+
+	"github.com/gorilla/sessions"
+	"github.com/markbates/goth"
+	"github.com/markbates/goth/gothic"
+	"github.com/markbates/goth/providers/google"
+	x "github.com/plainkit/html"
+)
+
+type sessionUser struct {
+	Name      string
+	Email     string
+	AvatarURL string
+}
+
+const (
+	sessionName       = "plainkit-goth-session"
+	providerName      = "google"
+	defaultBaseURL    = "http://localhost:3000"
+	defaultPort       = "3000"
+	defaultSessSecret = "plainkit-goth-example-secret"
+)
+
+func main() {
+	gob.Register(sessionUser{})
+
+	clientID := mustEnv("GOOGLE_CLIENT_ID")
+	clientSecret := mustEnv("GOOGLE_CLIENT_SECRET")
+	baseURL := getenvDefault("BASE_URL", defaultBaseURL)
+	callbackURL := baseURL + "/auth/google/callback"
+
+	goth.UseProviders(google.New(clientID, clientSecret, callbackURL, "email", "profile"))
+
+	sessionSecret := getenvDefault("SESSION_SECRET", defaultSessSecret)
+	store := sessions.NewCookieStore([]byte(sessionSecret))
+	store.Options = &sessions.Options{
+		Path:     "/",
+		MaxAge:   86400 * 7,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	}
+	gothic.Store = store
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", renderHome)
+	mux.HandleFunc("/auth/google", beginGoogleAuth)
+	mux.HandleFunc("/auth/google/callback", completeGoogleAuth)
+	mux.HandleFunc("/dashboard", requireAuth(renderDashboard))
+	mux.HandleFunc("/logout", handleLogout)
+
+	addr := ":" + getenvDefault("PORT", defaultPort)
+	log.Printf("Listening on %s", addr)
+
+	if err := http.ListenAndServe(addr, mux); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func renderHome(w http.ResponseWriter, r *http.Request) {
+	user := currentUser(r)
+
+	// Redirect logged-in users to dashboard
+	if user != nil {
+		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+		return
+	}
+
+	content := []x.Node{
+		x.H1(x.T("PlainKit + Goth")),
+		x.P(x.Class("muted"), x.T("Authenticate with Google to access the private dashboard.")),
+		x.Div(
+			x.Class("actions"),
+			x.A(x.Href("/auth/google"), x.Class("button"),
+				x.Svg(
+					x.Xmlns("http://www.w3.org/2000/svg"),
+					x.ViewBox("0 0 24 24"),
+					x.SvgWidth("20"),
+					x.SvgHeight("20"),
+					x.Fill("currentColor"),
+					x.Role("img"),
+					x.Path(x.D("M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z")),
+				),
+				x.T("Continue with Google"),
+			),
+		),
+	}
+
+	renderPage(w, "Home", content...)
+}
+
+func beginGoogleAuth(w http.ResponseWriter, r *http.Request) {
+	gothic.BeginAuthHandler(w, withProvider(r, providerName))
+}
+
+func completeGoogleAuth(w http.ResponseWriter, r *http.Request) {
+	user, err := gothic.CompleteUserAuth(w, withProvider(r, providerName))
+	if err != nil {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	session, err := gothic.Store.Get(r, sessionName)
+	if err != nil {
+		http.Error(w, "failed to load session", http.StatusInternalServerError)
+		return
+	}
+
+	session.Values["user"] = sessionUser{
+		Name:      user.Name,
+		Email:     user.Email,
+		AvatarURL: user.AvatarURL,
+	}
+	if err := session.Save(r, w); err != nil {
+		http.Error(w, "failed to save session", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+}
+
+func renderDashboard(w http.ResponseWriter, r *http.Request) {
+	user := userFromContext(r)
+	if user == nil {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	content := []x.Node{
+		x.H1(x.T("Welcome back")),
+	}
+
+	if user.AvatarURL != "" {
+		content = append(content,
+			x.Div(
+				x.Class("avatar"),
+				x.Img(x.Src(user.AvatarURL), x.Alt("Avatar")),
+			),
+		)
+	}
+
+	content = append(content,
+		x.Div(
+			x.Class("surface"),
+			x.Div(
+				x.Class("data-row"),
+				x.Span(x.Class("data-label"), x.T("Name")),
+				x.Strong(x.T(user.Name)),
+			),
+			x.Div(
+				x.Class("data-row"),
+				x.Span(x.Class("data-label"), x.T("Email")),
+				x.Strong(x.T(user.Email)),
+			),
+		),
+		x.Div(
+			x.Class("actions"),
+			x.A(x.Href("/logout"), x.Class("button"), x.T("Sign out")),
+		),
+	)
+
+	renderPage(w, "Dashboard", content...)
+}
+
+func handleLogout(w http.ResponseWriter, r *http.Request) {
+	if err := gothic.Logout(w, withProvider(r, providerName)); err != nil {
+		log.Printf("logout error: %v", err)
+	}
+
+	session, err := gothic.Store.Get(r, sessionName)
+	if err == nil {
+		session.Options.MaxAge = -1
+		_ = session.Save(r, w)
+	}
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+type userContextKey struct{}
+
+func requireAuth(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		user := currentUser(r)
+		if user == nil {
+			http.Redirect(w, r, "/", http.StatusSeeOther)
+			return
+		}
+		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), userContextKey{}, user)))
+	}
+}
+
+func currentUser(r *http.Request) *sessionUser {
+	session, err := gothic.Store.Get(r, sessionName)
+	if err != nil {
+		return nil
+	}
+	if value, ok := session.Values["user"]; ok {
+		switch v := value.(type) {
+		case sessionUser:
+			if v.Email == "" {
+				return nil
+			}
+			user := v
+			return &user
+		case *sessionUser:
+			if v != nil && v.Email != "" {
+				return v
+			}
+		}
+	}
+	return nil
+}
+
+func userFromContext(r *http.Request) *sessionUser {
+	if value := r.Context().Value(userContextKey{}); value != nil {
+		switch v := value.(type) {
+		case *sessionUser:
+			return v
+		case sessionUser:
+			user := v
+			return &user
+		}
+	}
+	return nil
+}
+
+func renderPage(w http.ResponseWriter, title string, body ...x.Node) {
+	page := layout(title, body...)
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if _, err := w.Write([]byte("<!DOCTYPE html>\n" + x.Render(page))); err != nil {
+		log.Printf("render error: %v", err)
+	}
+}
+
+func layout(title string, body ...x.Node) x.Node {
+	cardChildren := make([]x.DivArg, 0, len(body)+1)
+	cardChildren = append(cardChildren, x.Class("card shell"))
+	for _, node := range body {
+		cardChildren = append(cardChildren, x.Child(node))
+	}
+
+	return x.Html(
+		x.Lang("en"),
+		x.Head(
+			x.HeadTitle(x.T(title)),
+			x.Meta(x.Charset("UTF-8")),
+			x.Meta(x.Name("viewport"), x.Content("width=device-width, initial-scale=1")),
+			x.HeadStyle(x.UnsafeText(baseStyles())),
+		),
+		x.Body(
+			x.Class("page"),
+			x.Main(
+				x.Class("container"),
+				x.Div(cardChildren...),
+			),
+		),
+	)
+}
+
+func baseStyles() string {
+	return `:root {
+  color-scheme: light dark;
+  --bg: #fafafa; /* zinc-50 */
+  --bg-gradient: radial-gradient(circle at top left, rgba(113, 113, 122, 0.08), rgba(161, 161, 170, 0.05));
+  --fg: #18181b; /* zinc-900 */
+  --muted: #71717a; /* zinc-500 */
+  --card-bg: #ffffff; /* white */
+  --surface-bg: #fafafa; /* zinc-50 */
+  --border: rgba(161, 161, 170, 0.2); /* zinc-400 with opacity */
+  --shadow: 0 28px 80px rgba(24, 24, 27, 0.12); /* zinc-900 shadow */
+  --surface-shadow: 0 20px 50px rgba(24, 24, 27, 0.06);
+  --accent: #3f3f46; /* zinc-700 */
+  --accent-hover: #27272a; /* zinc-800 */
+  --button-bg: rgba(63, 63, 70, 0.08); /* zinc-700 with opacity */
+  --button-border: rgba(113, 113, 122, 0.25); /* zinc-500 with opacity */
+  --button-hover-bg: rgba(63, 63, 70, 0.15); /* zinc-700 with opacity */
+  --avatar-border: rgba(113, 113, 122, 0.4); /* zinc-500 with opacity */
+  --avatar-shadow: 0 10px 30px rgba(24, 24, 27, 0.18); /* zinc-900 shadow */
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #09090b; /* zinc-950 */
+    --bg-gradient: radial-gradient(circle at top left, rgba(113, 113, 122, 0.15), rgba(82, 82, 91, 0.08));
+    --fg: #fafafa; /* zinc-50 */
+    --muted: #a1a1aa; /* zinc-400 */
+    --card-bg: #18181b; /* zinc-900 */
+    --surface-bg: #27272a; /* zinc-800 */
+    --border: rgba(82, 82, 91, 0.3); /* zinc-600 with opacity */
+    --shadow: 0 30px 90px rgba(9, 9, 11, 0.8); /* zinc-950 shadow */
+    --surface-shadow: 0 22px 60px rgba(9, 9, 11, 0.5);
+    --accent: #d4d4d8; /* zinc-300 */
+    --accent-hover: #e4e4e7; /* zinc-200 */
+    --button-bg: rgba(212, 212, 216, 0.1); /* zinc-300 with opacity */
+    --button-border: rgba(161, 161, 170, 0.25); /* zinc-400 with opacity */
+    --button-hover-bg: rgba(212, 212, 216, 0.2); /* zinc-300 with opacity */
+    --avatar-border: rgba(161, 161, 170, 0.4); /* zinc-400 with opacity */
+    --avatar-shadow: 0 10px 30px rgba(9, 9, 11, 0.25); /* zinc-950 shadow */
+  }
+}
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+  background: var(--bg);
+  background-image: var(--bg-gradient);
+  color: var(--fg);
+}
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+}
+.container {
+  width: min(520px, 100%);
+}
+.card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+.shell {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: 48px;
+}
+.surface {
+  background: var(--surface-bg);
+  border-radius: 8px;
+  padding: 24px;
+  border: 1px solid var(--border);
+  box-shadow: var(--surface-shadow);
+}
+h1 {
+  margin: 0;
+  font-size: 2.3rem;
+  line-height: 1.1;
+}
+p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.muted {
+  color: var(--muted);
+}
+.surface > * + * {
+  margin-top: 18px;
+}
+.data-row {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  font-weight: 500;
+}
+.data-label {
+  min-width: 72px;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.data-row strong {
+  color: var(--fg);
+  font-weight: 600;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: 1px solid var(--button-border);
+  background: var(--button-bg);
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s ease, transform 0.2s ease, border 0.2s ease;
+}
+.button:hover {
+  background: var(--button-hover-bg);
+  transform: translateY(-1px);
+}
+.button:active {
+  transform: translateY(1px);
+}
+.avatar {
+  display: flex;
+  justify-content: center;
+}
+.avatar img {
+  border-radius: 50%;
+  width: 88px;
+  height: 88px;
+  border: 3px solid var(--avatar-border);
+  box-shadow: var(--avatar-shadow);
+}
+@media (max-width: 640px) {
+  .shell {
+    padding: 32px;
+  }
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+`
+}
+
+func withProvider(r *http.Request, name string) *http.Request {
+	return r.WithContext(context.WithValue(r.Context(), gothic.ProviderParamKey, name))
+}
+
+func mustEnv(key string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		log.Fatalf("missing required environment variable %s", key)
+	}
+	return value
+}
+
+func getenvDefault(key, fallback string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		return fallback
+	}
+	return value
+}

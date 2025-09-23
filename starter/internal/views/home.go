@@ -100,59 +100,68 @@ func HomePage() Node {
 
 			// Feature 1: Type Safety
 			ui.Card(
-				Class("p-6 hover:shadow-lg transition-shadow"),
-				Div(
-					Class("flex items-center gap-4 mb-4"),
+				Class("hover:shadow-lg transition-shadow"),
+				ui.CardHeader(
 					Div(
-						Class("flex items-center justify-center w-12 h-12 bg-primary/10 rounded-lg"),
-						icons.Shield(icons.Size("24"), Class("text-primary")),
+						Class("flex items-center gap-4"),
+						Div(
+							Class("flex items-center justify-center w-12 h-12 bg-primary/10 rounded-lg"),
+							icons.Shield(icons.Size("24"), Class("text-primary")),
+						),
+						ui.CardTitle(T("Type Safe")),
 					),
-					H3(Class("text-lg font-semibold"), T("Type Safe")),
 				),
-				P(
-					Class("text-muted-foreground"),
-					T("Compile-time validation ensures your HTML is always correct. Invalid combinations fail at build time."),
+				ui.CardContent(
+					ui.CardDescription(
+						T("Compile-time validation ensures your HTML is always correct. Invalid combinations fail at build time."),
+					),
 				),
 			),
 
 			// Feature 2: Performance
 			ui.Card(
-				Class("p-6 hover:shadow-lg transition-shadow"),
-				Div(
-					Class("flex items-center gap-4 mb-4"),
+				Class("hover:shadow-lg transition-shadow"),
+				ui.CardHeader(
 					Div(
-						Class("flex items-center justify-center w-12 h-12 bg-chart-2/10 rounded-lg"),
-						icons.Zap(icons.Size("24"), Class("text-chart-2")),
+						Class("flex items-center gap-4"),
+						Div(
+							Class("flex items-center justify-center w-12 h-12 bg-chart-2/10 rounded-lg"),
+							icons.Zap(icons.Size("24"), Class("text-chart-2")),
+						),
+						ui.CardTitle(T("Lightning Fast")),
 					),
-					H3(Class("text-lg font-semibold"), T("Lightning Fast")),
 				),
-				P(
-					Class("text-muted-foreground"),
-					T("Zero runtime overhead. Pure function calls generate HTML strings at compile time."),
+				ui.CardContent(
+					ui.CardDescription(
+						T("Zero runtime overhead. Pure function calls generate HTML strings at compile time."),
+					),
 				),
 			),
 
 			// Feature 3: Beautiful Design
 			ui.Card(
-				Class("p-6 hover:shadow-lg transition-shadow"),
-				Div(
-					Class("flex items-center gap-4 mb-4"),
+				Class("hover:shadow-lg transition-shadow"),
+				ui.CardHeader(
 					Div(
-						Class("flex items-center justify-center w-12 h-12 bg-chart-4/10 rounded-lg"),
-						icons.Palette(icons.Size("24"), Class("text-chart-4")),
+						Class("flex items-center gap-4"),
+						Div(
+							Class("flex items-center justify-center w-12 h-12 bg-chart-4/10 rounded-lg"),
+							icons.Palette(icons.Size("24"), Class("text-chart-4")),
+						),
+						ui.CardTitle(T("Beautiful Design")),
 					),
-					H3(Class("text-lg font-semibold"), T("Beautiful Design")),
 				),
-				P(
-					Class("text-muted-foreground"),
-					T("Modern UI components with shadcn/ui styling and 1000+ Lucide icons included."),
+				ui.CardContent(
+					ui.CardDescription(
+						T("Modern UI components with shadcn/ui styling and 1000+ Lucide icons included."),
+					),
 				),
 			),
 		),
 
 		// Code Example
 		ui.Card(
-			Class("p-8 bg-gradient-to-br from-muted/50 to-accent/50"),
+			Class("bg-gradient-to-br from-muted/50 to-accent/50"),
 			ui.CardHeader(
 				ui.CardTitle(
 					Div(
