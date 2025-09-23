@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -11,7 +12,8 @@ func main() {
 	application := app.New()
 
 	addr := ":8080"
-	log.Printf("Modern Todo App listening on %s", addr)
+	fmt.Println("🚀 Modern Todo App Demo Server starting on :8080")
+	fmt.Println("🔗 Open http://localhost:8080 to view the demo")
 
 	if err := http.ListenAndServe(addr, application.Mux); err != nil {
 		log.Fatal(err)

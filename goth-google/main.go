@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/gob"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -56,7 +57,8 @@ func main() {
 	mux.HandleFunc("/logout", handleLogout)
 
 	addr := ":" + getenvDefault("PORT", defaultPort)
-	log.Printf("Listening on %s", addr)
+	fmt.Println("🚀 Goth Google OAuth Demo Server starting on " + addr)
+	fmt.Println("🔗 Open http://localhost" + addr + " to view the demo")
 
 	if err := http.ListenAndServe(addr, mux); err != nil {
 		log.Fatal(err)
